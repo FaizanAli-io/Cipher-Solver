@@ -1,13 +1,5 @@
-# -*- coding: utf-8 -*-
-
-# Form implementation generated from reading ui file 'cipher.ui'
-#
-# Created by: PyQt5 UI code generator 5.13.2
-#
-# WARNING! All changes made in this file will be lost!
-
-
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtWidgets import QMessageBox
 from hashing import encode
 
 class Ui_Dialog(object):
@@ -60,7 +52,7 @@ class Ui_Dialog(object):
                 self.cipherTypes.addItem("")
                 self.cipherTypes.addItem("")
                 self.cipherTypes.addItem("")
-                #self.cipherTypes.addItem("")
+                self.cipherTypes.addItem("")
                 self.type = QtWidgets.QLabel(self.groupBox)
                 self.type.setGeometry(QtCore.QRect(20, 30, 80, 20))
                 font = QtGui.QFont()
@@ -70,13 +62,6 @@ class Ui_Dialog(object):
                 font.setWeight(75)
                 self.type.setFont(font)
                 self.type.setObjectName("type")
-                self.hashkeyInput = QtWidgets.QLineEdit(self.groupBox)
-                self.hashkeyInput.setGeometry(QtCore.QRect(110, 120, 150, 20))
-                self.hashkeyInput.setStyleSheet("border-radius:8px;\n"
-                "border-color:rgb(12, 12, 12);\n"
-                "border-width:1px;\n"
-                "border-style:solid")
-                self.hashkeyInput.setObjectName("hashkeyInput")
                 self.textLabel = QtWidgets.QLabel(self.groupBox)
                 self.textLabel.setGeometry(QtCore.QRect(20, 60, 80, 20))
                 font = QtGui.QFont()
@@ -95,15 +80,6 @@ class Ui_Dialog(object):
                 font.setWeight(75)
                 self.keyLabel.setFont(font)
                 self.keyLabel.setObjectName("keyLabel")
-                self.hashkeyLabel = QtWidgets.QLabel(self.groupBox)
-                self.hashkeyLabel.setGeometry(QtCore.QRect(20, 120, 80, 20))
-                font = QtGui.QFont()
-                font.setFamily("Perpetua")
-                font.setPointSize(10)
-                font.setBold(True)
-                font.setWeight(75)
-                self.hashkeyLabel.setFont(font)
-                self.hashkeyLabel.setObjectName("hashkeyLabel")
 
                 self.retranslateUi(Dialog)
                 QtCore.QMetaObject.connectSlotsByName(Dialog)
@@ -111,6 +87,7 @@ class Ui_Dialog(object):
                 #
                 self.encodeButton.clicked.connect(self.encodeMethod)
                 self.decodeButton.clicked.connect(self.decodeMethod)
+                self.cipherTypes.activated.connect(self.changeLabels)
                 #
 
         def retranslateUi(self, Dialog):
@@ -123,56 +100,83 @@ class Ui_Dialog(object):
                 self.cipherTypes.setItemText(1, _translate("Dialog", "Vigenere\'s Cipher"))
                 self.cipherTypes.setItemText(2, _translate("Dialog", "Matrix Cipher"))
                 self.cipherTypes.setItemText(3, _translate("Dialog", "Porta Cipher"))
-                #self.cipherTypes.setItemText(4, _translate("Dialog", "ADVGF (German) Cipher"))
+                self.cipherTypes.setItemText(4, _translate("Dialog", "ADVGF (German) Cipher"))
                 self.type.setText(_translate("Dialog", "Cipher Type"))
                 self.textLabel.setText(_translate("Dialog", "Text"))
                 self.keyLabel.setText(_translate("Dialog", "Key"))
-                self.hashkeyLabel.setText(_translate("Dialog", "Hash"))
         
+        #
         def encodeMethod(self):
                 index = self.cipherTypes.currentIndex()
                 text = encode(self.textInput.text())
+                key = self.keyInput.text()
                 if index==0:
-                        key = int(self.keyInput.text())
-                        ciphertext = text.caesar(key)
+                        if not key.isnumeric(): self.popError('Specify an Integer Key please')
+                        else: ciphertext = text.caesar(int(key))
                 elif index==1:
-                        key = self.keyInput.text()
-                        ciphertext = text.vigenere(key)
+                        if not key.isalpha(): self.popError('Specify a valid KeyWord please')
+                        else: ciphertext = text.vigenere(key)
                 elif index==2:
-                        key = int(self.keyInput.text())
-                        ciphertext = text.matrix(key)
+                        if not key.isnumeric(): self.popError('Specify an Integer Key please')
+                        else: ciphertext = text.matrix(int(key))
                 elif index==3:
-                        key = self.keyInput.text()
-                        ciphertext = text.porta(key)
+                        if not key.isalpha(): self.popError('Specify a valid KeyWord please')
+                        else: ciphertext = text.porta(key)
                 elif index==4:
-                        key = self.keyInput.text()
-                        ciphertext = f"{text.ADFGVX(key)[0]}\n{text.ADFGVX(key)[1]}"
+                        if key: 
+                                if not key.isalnum() or not len(key) == 36: self.popError('Specify a valid (36 digit) HashKey please')
+                                else: ciphertext, hashmap = text.ADFGVX(key)
+                        else: ciphertext, hashmap = text.ADFGVX()
+                        self.keyInput.setText(hashmap)
                 else:
                         ciphertext = ''
-                self.textOut.setText(ciphertext)
+                try:
+                        self.textOut.setText(ciphertext)
+                except:
+                        pass
         
         def decodeMethod(self):
                 index = self.cipherTypes.currentIndex()
                 text = encode(self.textInput.text())
+                key = self.keyInput.text()
                 if index==0:
-                        key = int(self.keyInput.text())
-                        ciphertext = text.decode_caesar(key)
+                        if not key.isnumeric(): self.popError('Specify an Integer Key please')
+                        else: ciphertext = text.decode_caesar(int(key))
                 elif index==1:
-                        key = self.keyInput.text()
-                        ciphertext = text.decode_vigenere(key)
+                        if not key.isalpha(): self.popError('Specify a valid KeyWord please')
+                        else: ciphertext = text.decode_vigenere(key)
                 elif index==2:
-                        key = int(self.keyInput.text())
-                        ciphertext = text.decode_matrix(key)
+                        if not key.isnumeric(): self.popError('Specify an Integer Key please')
+                        else: ciphertext = text.decode_matrix(int(key))
                 elif index==3:
-                        key = self.keyInput.text()
-                        ciphertext = text.decode_porta(key)
+                        if not key.isalpha(): self.popError('Specify a valid KeyWord please')
+                        else: ciphertext = text.decode_porta(key)
                 elif index==4:
-                        key = self.keyInput.text()
-                        hask = self.hashkeyInput.text()
-                        ciphertext = text.decode_ADFGVX(hask, key)
+                        if not key.isalnum() or not len(key) == 36: self.popError('Specify a valid (36 digit) HashKey please')
+                        else: ciphertext = text.decode_ADFGVX(key)
                 else:
                         ciphertext = ''
-                self.textOut.setText(ciphertext)
+                try:
+                        self.textOut.setText(ciphertext)
+                except:
+                        pass
+
+        def changeLabels(self, cur):
+                if cur == 0 or cur == 2:
+                        self.keyLabel.setText("Key")
+                elif cur == 1 or cur == 3:
+                        self.keyLabel.setText("KeyWord")
+                elif cur == 4:
+                        self.keyLabel.setText("HashKey")
+        
+        def popError(self, errorText):
+                mb = QMessageBox()
+                mb.setWindowTitle("Invalid Input")
+                mb.setText(errorText)
+                mb.setIcon(QMessageBox.Warning)
+
+                x = mb.exec_()
+        #
 
 if __name__ == "__main__":
         import sys

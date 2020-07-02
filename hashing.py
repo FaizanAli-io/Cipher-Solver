@@ -101,59 +101,29 @@ class encode:
             plaintext += grid[j][i]
         return plaintext
 
-    def ADFGVX(self, word, hashkey=None):
+    def ADFGVX(self, hashkey=None):
         if hashkey:
             hashkey = list(hashkey)
         else:
             hashkey = [chr(i) for i in range(97, 123)] + [str(i) for i in range(10)]
             random.shuffle(hashkey)
-        cipher = ''
+        ciphertext = ''
+        spacecode = ''.join([i for i in hashkey if i.isdecimal()][:3])
+        self.data = self.data.replace(' ', spacecode)
         for i in self.data:
-            cipher += 'adfgvx'[hashkey.index(i) // 6] + 'adfgvx'[hashkey.index(i) % 6]
-        i = 0
-        j = 0
-        while len(cipher) % len(word) != 0:
-            cipher += '#'
-        myli = [[i.upper()] for i in word]
-        while i < len(cipher):
-            myli[j].append(cipher[i])
-            i += 1
-            j += 1
-            if j >= len(myli): j = 0
-        myli = sorted(myli, key=lambda x: x[0])
-        [li.pop(0) for li in myli]
-        return ''.join([''.join(row) for row in myli]), ''.join(hashkey)
+            ciphertext += 'adfgvx'[hashkey.index(i) // 6] + 'adfgvx'[hashkey.index(i) % 6]
+        return ciphertext, ''.join(hashkey)
 
-    def decode_ADFGVX(self, hashkey, word):
-        wordorig = word.upper()
-        word = sorted(wordorig)
-        myli = [[letter] for letter in word]
-        chsize = len(self.data)//len(word)
-        for i in range(len(myli)):
-            myli[i].append(self.data[:chsize])
-            self.data = self.data[chsize:]
-        myli2 = []
-        for letter in wordorig:
-            for item in myli:
-                if item[0] == letter:
-                    myli2.append(item)
-        
-        myli2 = [i[-1] for i in myli2]
-        cipher = ''
-        for i in range(len(myli2[0])):
-            for item in myli2:
-                if item[i] != '#': cipher += item[i]
-        coords = []
-        i = 0
-        while i < len(cipher):
-            x, y = 'adfgvx'.index(cipher[i]), 'adfgvx'.index(cipher[i+1])
+    def decode_ADFGVX(self, hashkey):
+        coords, i = [], 0
+        while i < len(self.data):
+            x, y = 'adfgvx'.index(self.data[i]), 'adfgvx'.index(self.data[i+1])
             coords.append((x, y))
             i += 2
-        hashkey = self.chunkify(list(hashkey), 6)
+        hashkey2 = self.chunkify(list(hashkey), 6)
         plaintext = ''
         for coord in coords:
-            plaintext += hashkey[coord[0]][coord[1]]
+            plaintext += hashkey2[coord[0]][coord[1]]
+        spacecode = ''.join([i for i in hashkey if i.isdecimal()][:3])
+        plaintext = plaintext.replace(spacecode, ' ')
         return plaintext
-
-if __name__ == "__main__":
-    print("hello world")
